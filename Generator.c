@@ -1,9 +1,7 @@
 #include "Generator.h"
 #include <stdio.h>
 #include <time.h>
-//<AMIT>
-#include <stdio.h>
-//</AMIT>
+
 
 typedef struct framePlaceholder
 {
@@ -42,9 +40,6 @@ static void populateFrame()
 static uint16_t generateIdValue()
 {
 	uint16_t id = time(0) % 3;
-	//<AMIT>
-	printf("rand = %0x \n", id);
-	//</AMIT>
 	id++;
 	id <<= 8;
 	return id;
@@ -68,32 +63,32 @@ static void writeIdentifier(uint8_t* pframe, uint16_t frameSize, uint16_t identi
 	uint8_t identifierMSB = identifier >> 8;
 
 	//keep other frame fields values, clean current identifier bits, set value
-	uint8_t frameBytes0Cpy = *pframe;
-	uint8_t frameBytes1Cpy = *(pframe + 1);
-	identifierLSB = identifierLSB | (frameBytes0Cpy & 0x0F);
-	identifierMSB = identifierMSB | (frameBytes1Cpy & 0x80);
-	
-	//<AMIT>
-	printf("frameBytes0Cpy = 0x%0x, frameBytes1Cpy = 0x%0x \n", frameBytes0Cpy, frameBytes1Cpy);
-	printf("cleared Byte 0 = 0x%0x, cleared Byte 1 = 0x%0x \n", (frameBytes0Cpy & 0x07), (frameBytes1Cpy & 0x80));
-	printf("identifierMSB = 0x%0x, identifierLSB = 0x%0x \n", identifierMSB, identifierLSB);
-	//</AMIT>
+	uint8_t frameByte0Cpy = *pframe;
+	uint8_t frameByte1Cpy = *(pframe + 1);
+	identifierLSB = identifierLSB | (frameByte0Cpy & 0x0F);
+	identifierMSB = identifierMSB | (frameByte1Cpy & 0x80);
 
 	*pframe = identifierMSB;
 	*(pframe + 1) = identifierLSB;
 }
 
-static uint16_t readIdentifier(uint8_t const* pframe, uint16_t frameSize)
+uint16_t readIdentifier(uint8_t const* pframe, uint16_t frameSize)
 {
 	if (frameSize < sizeof(uint16_t)) 
 	{
 		return ERROR_FIELD_READ;
 	}
 
-	uint16_t identifier = *((uint16_t*)pframe);
-	identifier &= 0x7FF0;
-	identifier >>= 4;
+	uint8_t frameByte0Cpy = *pframe;
+	uint8_t frameByte1Cpy = *(pframe + 1);
 
-	return identifier;
+	uint16_t result = 0;
+	uint8_t* pResultLSB= (uint8_t*)&result;
+	uint8_t* pResultMSB = ((uint8_t*)&result) + 1;
+	*pResultMSB |= (frameByte0Cpy & 0x7F);
+	*pResultLSB |= (frameByte1Cpy & 0xF0);
+	result >>= 4;
+
+	return result;
 }
 
