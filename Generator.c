@@ -1,45 +1,72 @@
 #include "Generator.h"
 #include <stdio.h>
 #include <time.h>
-
+#include <windows.h>
 
 typedef struct framePlaceholder
 {
-	uint8_t placeholder[FRAME_TOTAL_REQUIRED_SIZE_bytes];
+	uint8_t placeholder[FRAME_TOTAL_MAX_SIZE_bytes];
 } framePlaceholder_t;
 
-framePlaceholder_t mframeBuffer;
+onFrameGenerated_cb mOnGeneratedCb = 0;
+framePlaceholder_t mFrameBuffer;
 
-static void populateFrame();
+static void populateFrame(uint8_t* pFrame, uint16_t frameSize);
+static uint16_t generateInterval();
 static uint16_t generateIdValue();
 static void writeIdentifier(uint8_t* pframe, uint16_t frameSize, uint16_t identifier);
 static uint16_t readIdentifier(uint8_t const* pframe, uint16_t frameSize);
 
+void setOnFrameGeneratedCB(onFrameGenerated_cb cb)
+{
+	//TODO - if more than 1 cb is required, modify to hold multiple callbacks
+	mOnGeneratedCb = cb;
+}
+
 void generateFrames(int amount)
 {
-	populateFrame();
+	srand((unsigned int)time(0));
+
+	uint16_t intervalMilliseconds;
+	for (int i = 0; i < amount; i++)
+	{
+		intervalMilliseconds = generateInterval();
+		//<AMIT>
+		printf("interval = %d \n", intervalMilliseconds);
+		//</AMIT>
+
+		//TODO - refactor to threads, so the app could still write into a file, and run, while generating.
+		Sleep(intervalMilliseconds);
+
+		populateFrame(&(mFrameBuffer.placeholder), sizeof(framePlaceholder_t));
+		if (mOnGeneratedCb != 0)
+		{
+			mOnGeneratedCb(&(mFrameBuffer.placeholder), sizeof(framePlaceholder_t));
+		}
+	}
 
 }
 
-uint8_t* getFramePtr()
+static uint16_t generateInterval()
 {
-	return &(mframeBuffer.placeholder);
+	return (rand() % (FRAME_GENERATE_INTERVAL_MAX_millis - FRAME_GENERATE_INTERVAL_MIN_millis + 1)) 
+		+ FRAME_GENERATE_INTERVAL_MIN_millis;
 }
 
-static void populateFrame()
+static void populateFrame(uint8_t* pFrame, uint16_t frameSize)
 {
-	memset(&mframeBuffer, 0xFF, sizeof(framePlaceholder_t));
+	memset(pFrame, 0xFF, frameSize);
 	
 	uint16_t id = generateIdValue();
 	//<AMIT>
 	printf("id = %0x \n", id);
 	//</AMIT>
-	writeIdentifier(&(mframeBuffer.placeholder), sizeof(framePlaceholder_t), id);
+	writeIdentifier(pFrame, frameSize, id);
 }
 
 static uint16_t generateIdValue()
 {
-	uint16_t id = time(0) % 3;
+	uint16_t id = rand() % 3;
 	id++;
 	id <<= 8;
 	return id;
@@ -50,17 +77,17 @@ static void writeIdentifier(uint8_t* pframe, uint16_t frameSize, uint16_t identi
 	if (identifier > 0x7FF)
 	{
 		//identifier field is 11 bits
-		return ERROR_FIELD_READ;
+		return FAILURE_INVALID_ARGS;
 	}
 
 	if (frameSize < sizeof(uint16_t))
 	{
-		return ERROR_FIELD_READ;
+		return FAILURE_INVALID_ARGS;
 	}
 
 	identifier <<= 4;
-	uint8_t identifierLSB = identifier;
-	uint8_t identifierMSB = identifier >> 8;
+	uint8_t identifierLSB = (uint8_t)identifier;
+	uint8_t identifierMSB = (uint8_t)(identifier >> 8);
 
 	//keep other frame fields values, clean current identifier bits, set value
 	uint8_t frameByte0Cpy = *pframe;
@@ -70,13 +97,15 @@ static void writeIdentifier(uint8_t* pframe, uint16_t frameSize, uint16_t identi
 
 	*pframe = identifierMSB;
 	*(pframe + 1) = identifierLSB;
+
+	return identifier;
 }
 
-uint16_t readIdentifier(uint8_t const* pframe, uint16_t frameSize)
+static uint16_t readIdentifier(uint8_t const* pframe, uint16_t frameSize)
 {
 	if (frameSize < sizeof(uint16_t)) 
 	{
-		return ERROR_FIELD_READ;
+		return FAILURE_INVALID_ARGS;
 	}
 
 	uint8_t frameByte0Cpy = *pframe;
@@ -91,4 +120,3 @@ uint16_t readIdentifier(uint8_t const* pframe, uint16_t frameSize)
 
 	return result;
 }
-

@@ -12,12 +12,18 @@
 #define FRAME_DATA_FIELD_OFFSET_bits				19
 #define FRAME_DATA_FIELD_SIZE_bytes					8
 
-#define FRAME_TOTAL_REQUIRED_SIZE_bytes				14 // frame size in bits = 108
+#define FRAME_TOTAL_MAX_SIZE_bytes				14 // frame size in bits = 108
+#define FRAME_TOTAL_MIN_SIZE_bytes				6 // data can vary between 0-8 bytes 
 
-#define ERROR_FIELD_READ							-1
+#define FAILURE_INVALID_ARGS						-1
 
+#define FRAME_GENERATE_INTERVAL_MIN_millis			50
+#define FRAME_GENERATE_INTERVAL_MAX_millis			100
+
+typedef void (*onFrameGenerated_cb)(uint8_t* pFrame, uint16_t frameSize);
+
+void setOnFrameGeneratedCB(onFrameGenerated_cb cb);
 void generateFrames(int amount);
-uint8_t* getFramePtr();
 
 #endif // ! _GENERATOR_H
 
