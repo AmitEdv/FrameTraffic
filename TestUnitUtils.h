@@ -5,5 +5,6 @@
 #include <stdio.h>
 
 void printBufferInHex(uint8_t* pBuff, uint16_t buffSize);
+void printBufferInBinary(uint8_t* pBuff, uint16_t buffSize);
 
 #endif // _TESTUNIT_UTILS_H_

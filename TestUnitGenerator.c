@@ -11,9 +11,20 @@ static void onFrameGenerated(uint8_t* pFrame, uint16_t frameSize);
  
 void testGeneratorUnit()
 {
+	//Test here: the randome generating
+	//-----------------------------------
 	setOnFrameGeneratedCB(onFrameGenerated);
 	sampleTime(&mGeneratingStartTime);
-	generateFrames(2);
+
+	//send as argument, the amount of frames you'd like to generate
+	generateFrames(0);
+
+
+	//Test here: A custom frame input to check reads and writes of fields
+	//-----------------------------------
+	//Expected: id = 0x300, dataLen = 7, data = all 0s
+	uint8_t frame[FRAME_TOTAL_MAX_SIZE_bytes] = { 0xB0, 0x0E, 0xE0, 0 }; 
+	onFrameGenerated(&frame, FRAME_TOTAL_MAX_SIZE_bytes);
 }
 
 static void onFrameGenerated(uint8_t* pFrame, uint16_t frameSize)
@@ -35,7 +46,14 @@ static void onFrameGenerated(uint8_t* pFrame, uint16_t frameSize)
 	{
 		printf("Test Unit: onFrameGenerated, invalid frame size! size = %d \n", frameSize);
 	}
-
 	printf("Test Unit: onFrameGenerated, frame size = %d, frame = \n", frameSize);
+
+	uint16_t id = readIdentifier(pFrame, frameSize);
+	printf("Test Unit: onFrameGenerated, read id = 0x%0x \n", id);
+
+	uint8_t dataSize = readDLC(pFrame, frameSize);
+	printf("Test Unit: onFrameGenerated, read data size = %d \n", dataSize);
+
 	printBufferInHex(pFrame, frameSize);
+	printBufferInBinary(pFrame, frameSize);
 }

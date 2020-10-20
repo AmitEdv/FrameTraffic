@@ -21,6 +21,7 @@ typedef struct frameWrapper
 {
 	uint16_t id;
 	uint16_t size;
+	uint8_t dataLength;
 	timeSampleInfo_t receivedTime;
 	invalidFrameReason_e validation;
 	uint8_t frameRawContent[FRAME_RAW_CONTENT_MAX_SIZE_bytes];

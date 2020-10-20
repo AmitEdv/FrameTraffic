@@ -3,6 +3,14 @@
 #include <time.h>
 #include <windows.h>
 
+#define FRAME_ARBITRATION_IDENTIFIER_END_BYTE		2
+
+#define FRAME_CONTROL_DLC_START_BYTE				1
+#define FRAME_CONTROL_DLC_END_BYTE					2
+
+#define FRAME_DATA_FIELD_START_BYTE					19
+#define FRAME_DATA_FIELD_END_BYTE					8
+
 typedef struct framePlaceholder
 {
 	uint8_t placeholder[FRAME_TOTAL_MAX_SIZE_bytes];
@@ -29,16 +37,9 @@ void generateFrames(int amount)
 	uint16_t intervalMilliseconds;
 	for (int i = 0; i < amount; i++)
 	{
-		//<AMIT>
-		intervalMilliseconds = 50;
-		//intervalMilliseconds = generateInterval();
-		//</AMIT
+		intervalMilliseconds = generateInterval();
 
-		//<AMIT>
-		printf("interval = %d \n", intervalMilliseconds);
-		//</AMIT>
-
-		//TODO - refactor to threads, so the app could still write into a file, and run, while generating.
+		//TODO - refactor to threads
 		Sleep(intervalMilliseconds);
 
 		populateFrame(&(mFrameBuffer.placeholder), sizeof(framePlaceholder_t));
@@ -106,20 +107,40 @@ static void writeIdentifier(uint8_t* pframe, uint16_t frameSize, uint16_t identi
 
 uint16_t readIdentifier(uint8_t const* pframe, uint16_t frameSize)
 {
-	if (frameSize < sizeof(uint16_t)) 
+	if (frameSize < FRAME_ARBITRATION_IDENTIFIER_END_BYTE + 1)
 	{
 		return FAILURE_INVALID_ARGS;
 	}
 
-	uint8_t frameByte0Cpy = *pframe;
-	uint8_t frameByte1Cpy = *(pframe + 1);
+	uint8_t frameMSBByteCpy = *pframe;
+	uint8_t frameLSBByteCpy = *(pframe + 1);
 
 	uint16_t result = 0;
 	uint8_t* pResultLSB= (uint8_t*)&result;
 	uint8_t* pResultMSB = ((uint8_t*)&result) + 1;
-	*pResultMSB |= (frameByte0Cpy & 0x7F);
-	*pResultLSB |= (frameByte1Cpy & 0xF0);
+	*pResultMSB |= (frameMSBByteCpy & 0x7F);
+	*pResultLSB |= (frameLSBByteCpy & 0xF0);
 	result >>= 4;
 
 	return result;
+}
+
+uint8_t readDLC(uint8_t const* pframe, uint16_t frameSize)
+{
+	if (frameSize < FRAME_CONTROL_DLC_END_BYTE + 1)
+	{
+		return FAILURE_INVALID_ARGS;
+	}
+
+	uint8_t frameMSBByteCpy = *(pframe + FRAME_CONTROL_DLC_START_BYTE);
+	uint8_t frameLSBByteCpy = *(pframe + FRAME_CONTROL_DLC_START_BYTE + 1);
+
+	uint16_t result = 0;
+	uint8_t* pResultLSB = (uint8_t*)&result;
+	uint8_t* pResultMSB = ((uint8_t*)&result) + 1;
+	*pResultMSB |= (frameMSBByteCpy & 0x01);
+	*pResultLSB |= (frameLSBByteCpy & 0xE0);
+	result >>= 5;
+
+	return (uint8_t)result;
 }

@@ -14,7 +14,7 @@ static uint8_t getPreviousFrameIndexById(uint16_t id);
 void onReceiveFrame(uint8_t const* pFrame, uint16_t frameSize)
 {
 	//<AMIT>
-	printf("frame received!");
+	printf("frame received! \n");
 	//</AMIT>
 
 	uint16_t frameId = readIdentifier(pFrame, frameSize);
@@ -26,9 +26,18 @@ void onReceiveFrame(uint8_t const* pFrame, uint16_t frameSize)
 		//TODO- handle scenario
 		return;
 	}
+	uint8_t dataLen = readDLC(pFrame, frameSize);
+	if (dataLen > DATA_FIELD_MAX_SIZE_bytes
+		|| dataLen < DATA_FIELD_MIN_SIZE_bytes)
+	{
+		//TODO- handle scenario
+		return;
+	}
+
 
 	frameWrapper_t currFrameWrapper;
 	currFrameWrapper.id = frameId;
+	currFrameWrapper.dataLength;
 	if (frameSize > FRAME_RAW_CONTENT_MAX_SIZE_bytes)
 	{
 		frameSize = FRAME_RAW_CONTENT_MAX_SIZE_bytes;
@@ -95,20 +104,12 @@ invalidFrameReason_e validationCheck(frameWrapper_t* curr, frameWrapper_t* prev)
 
 bool isRateValid(frameWrapper_t* curr, frameWrapper_t* prev)
 {
-	//<AMIT>
-	printf("start sec = %d , millis = %d \n", prev->receivedTime.epochSeconds, curr->receivedTime.milliseconds);
-	printf("end   sec = %d , millis = %d \n", curr->receivedTime.epochSeconds, prev->receivedTime.milliseconds);
-	printf("diff = %d ms \n", getTimeDifferenceInMillis(&(prev->receivedTime), &(curr->receivedTime)));
-	//</AMIT>
-
 	return (getTimeDifferenceInMillis(&(prev->receivedTime), &(curr->receivedTime)) > VALID_RATE_MIN);
 }
 
 bool isDataLengthDifferent(frameWrapper_t* curr, frameWrapper_t* prev)
 {
-	//<AMIT>
-	return false;
-	//</AMIT
+	return (curr->dataLength != prev->dataLength);
 }
 
 bool isDataDifferent(frameWrapper_t* curr, frameWrapper_t* prev)
