@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
 	printf("==================================== \n");
 
 	printf("=========Run Program================ \n");
-	run(5);
+	run(10);
 	printf("==================================== \n");
 
 	return 0;

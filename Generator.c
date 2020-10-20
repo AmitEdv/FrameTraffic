@@ -71,6 +71,8 @@ static void populateFrame(uint8_t* pFrame, uint16_t frameSize)
 	writeIdentifier(pFrame, frameSize, id);
 	uint8_t dlc = (uint16_t)generateDLCValue();
 	writeDLC(pFrame, frameSize, dlc);
+	printf("populateFrame: id  = 0x%0x \n", id);
+	printf("populateFrame: dlc = %d bytes \n", dlc);
 
 	uint8_t data[DATA_FIELD_MAX_SIZE_bytes];
 	generateDataValues(&data, DATA_FIELD_MAX_SIZE_bytes, dlc);

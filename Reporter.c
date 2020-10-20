@@ -5,9 +5,7 @@
 
 void onFrameDetected(frameWrapper_t frame)
 {
-	//<AMIT>
 	printf("onFrameDetected \n");
-	//</AMIT>
 
 	FILE* fp;
 	errno_t err = fopen_s(&fp, FILE_PATH, "a");

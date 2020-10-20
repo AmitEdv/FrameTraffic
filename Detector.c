@@ -1,10 +1,9 @@
 #include "Detector.h"
 #include <string.h>
+#include <stdio.h>
 #include "Generator.h"
 #include "Reporter.h"
 
-//AMIT
-#include <stdio.h>
 
 #define VALID_RATE_MIN						100
 
@@ -14,9 +13,7 @@ static uint8_t getPreviousFrameIndexById(uint16_t id);
 
 void onReceiveFrame(uint8_t const* pFrame, uint16_t frameSize)
 {
-	//<AMIT>
-	printf("frame received! \n");
-	//</AMIT>
+	printf("onReceiveFrame \n");
 
 	uint16_t frameId = readIdentifier(pFrame, frameSize);
 	if (frameId == WRITE_FAILURE_INVALID_ARGS
@@ -38,7 +35,7 @@ void onReceiveFrame(uint8_t const* pFrame, uint16_t frameSize)
 
 	frameWrapper_t currFrameWrapper;
 	currFrameWrapper.id = frameId;
-	currFrameWrapper.dataLength;
+	currFrameWrapper.dataLength = dataLen;
 	if (frameSize > FRAME_RAW_CONTENT_MAX_SIZE_bytes)
 	{
 		frameSize = FRAME_RAW_CONTENT_MAX_SIZE_bytes;
@@ -87,16 +84,21 @@ invalidFrameReason_e validationCheck(frameWrapper_t* curr, frameWrapper_t* prev)
 	
 	if (! isRateValid(curr, prev))
 	{
+		printf("validationCheck: INVALID_RATE \n");
+		printf("validationCheck: time sample curr = %d sec, %d ms.  prev = %d sec, %d ms \n", 
+			curr->receivedTime.epochSeconds, curr->receivedTime.milliseconds, prev->receivedTime.epochSeconds, prev->receivedTime.milliseconds);
 		return INVALID_RATE;
 	}
 
 	if (! isDataLengthDifferent(curr, prev))
 	{
+		printf("validationCheck: INVALID_FIELD_LENGTH \n");
 		return INVALID_FIELD_LENGTH;
 	}
 
 	if (! isDataDifferent(curr, prev))
 	{
+		printf("validationCheck: INVALID_DATA \n");
 		return INVALID_DATA;
 	}
 
@@ -104,12 +106,15 @@ invalidFrameReason_e validationCheck(frameWrapper_t* curr, frameWrapper_t* prev)
 }
 
 bool isRateValid(frameWrapper_t* curr, frameWrapper_t* prev)
-{
+{	
 	return (getTimeDifferenceInMillis(&(prev->receivedTime), &(curr->receivedTime)) > VALID_RATE_MIN);
 }
 
 bool isDataLengthDifferent(frameWrapper_t* curr, frameWrapper_t* prev)
 {
+	//<AMIT>
+	printf("validationCheck: data len curr = %d .  data len prev = %d \n", curr->dataLength, prev->dataLength);
+	//</AMIT>
 	return (curr->dataLength != prev->dataLength);
 }
 
