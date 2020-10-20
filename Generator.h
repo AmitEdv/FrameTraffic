@@ -11,6 +11,7 @@
 
 #define WRITE_FAILURE_INVALID_ARGS				-1
 #define WRITE_SUCCESS							0
+#define READ_FAILURE_INVALID_ARGS				0xFFFF
 
 #define FRAME_GENERATE_INTERVAL_MIN_millis		50
 #define FRAME_GENERATE_INTERVAL_MAX_millis		100
@@ -20,8 +21,9 @@ typedef void (*onFrameGenerated_cb)(uint8_t* pFrame, uint16_t frameSize);
 void setOnFrameGeneratedCB(onFrameGenerated_cb cb);
 void generateFrames(int amount);
 uint16_t readIdentifier(uint8_t const* pframe, uint16_t frameSize);
-uint8_t readDLC(uint8_t const* pframe, uint16_t frameSize);
+uint16_t readDLC(uint8_t const* pframe, uint16_t frameSize);
 uint8_t writeDLC(uint8_t* pframe, uint16_t frameSize, uint16_t dlc);
+uint8_t writeDataValues(uint8_t* pFrame, uint16_t frameSize, uint8_t* pData, uint8_t dataLen);
 
 #endif // ! _GENERATOR_H
 

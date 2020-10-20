@@ -11,25 +11,48 @@ static void onFrameGenerated(uint8_t* pFrame, uint16_t frameSize);
  
 void testGeneratorUnit()
 {
-	//Test here: the random generating
-	//-----------------------------------
+	//TEST HERE: the random generating
+	//comment-in "generateFrames" and send the desired amount of frames to generate
+	//in order to run this test.
+	//==================================
 	/*
 	setOnFrameGeneratedCB(onFrameGenerated);
 	sampleTime(&mGeneratingStartTime);
 
 	//send as argument, the amount of frames you'd like to generate
-	generateFrames(0);
+	generateFrames(2);
 	*/
 
 
-	//Test here: A custom frame input to check reads and writes of fields
-	//-----------------------------------
-	//Test case 1. result expected: id = 0x300, dataLen = 7, data = all 0s
-	//uint8_t frame[FRAME_TOTAL_MAX_SIZE_bytes] = { 0xB0, 0x0E, 0xE0, 0xFF, 0 }; 
+	//TEST HERE: A custom frame input to check reads and writes of fields.
+	//comment-in the desired test case or create your own.
+	//comment-in the required action in "TEST ACTIONS" in order to run it.
+	//==================================
 	
-	// Test case 2. result expected : id = 0x200, dataLen = 8, data = all 0s
-	uint8_t frame[FRAME_TOTAL_MAX_SIZE_bytes] = { 0xA0, 0x0F, 0x1F, 0xFF, 0}; 
+	//TEST INPUTS
+	//-----------
+	//Test case 1. result expected: id = 0x300, dataLen = 7, data = all 0s
+	//uint8_t frame[FRAME_TOTAL_MAX_SIZE_bytes] = { 0xB0, 0x0E, 0xE0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; 
+	
+	//Test case 2. result expected : id = 0x200, dataLen = 8, data = all 0s
+	uint8_t frame[FRAME_TOTAL_MAX_SIZE_bytes] = { 0xA0, 0x0F, 0x1F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+
+	//TEST ACTIONS
+	//-----------
+
+	printf("Before writing data: \n");
+	printBufferInHex(frame, FRAME_TOTAL_MAX_SIZE_bytes);
+	uint8_t data[DATA_FIELD_MAX_SIZE_bytes] = { 0x11, 0x22, 0x33, 0x44 };
+	uint8_t dataLen = 4;
+	writeDataValues(frame, FRAME_TOTAL_MAX_SIZE_bytes, data, dataLen);
+	printf("After writing data: \n");
+	printBufferInHex(frame, FRAME_TOTAL_MAX_SIZE_bytes);
+
 	//onFrameGenerated((uint8_t*)&frame, FRAME_TOTAL_MAX_SIZE_bytes);
+	
+
+
 
 }
 
@@ -65,7 +88,7 @@ static void onFrameGenerated(uint8_t* pFrame, uint16_t frameSize)
 		printf("Test Unit: onFrameGenerated, write data size Failed! \n");
 	}
 	printf("Test Unit: onFrameGenerated, write data size = %d \n", dataSizeOverride);
-	dataSize = readDLC(pFrame, frameSize);
+	dataSize = (uint8_t)readDLC(pFrame, frameSize);
 	printf("Test Unit: onFrameGenerated, read data size = %d \n", dataSize);
 
 	printBufferInHex(pFrame, frameSize);

@@ -8,8 +8,12 @@
 #define FRAME_CONTROL_DLC_START_BYTE				1
 #define FRAME_CONTROL_DLC_END_BYTE					2
 
-#define FRAME_DATA_FIELD_START_BYTE					19
-#define FRAME_DATA_FIELD_END_BYTE					8
+#define FRAME_DATA_FIELD_START_BYTE					2
+#define FRAME_DATA_FIELD_END_BYTE					10
+#define FRAME_DATA_FIELD_FIRST_BIT_OFFSET			3 //zero based, within the first byte
+
+#define BYTE_MAX_VAL								0xFF
+#define BITS_IN_BYTE								8
 
 typedef struct framePlaceholder
 {
@@ -23,6 +27,7 @@ static void populateFrame(uint8_t* pFrame, uint16_t frameSize);
 static uint16_t generateInterval();
 static uint16_t generateIdValue();
 static uint16_t generateDLCValue();
+static void generateDataValues(uint8_t* pDataBuffer, uint16_t frameSize, uint8_t dataLen);
 static uint16_t writeIdentifier(uint8_t* pframe, uint16_t frameSize, uint16_t identifier);
 
 void setOnFrameGeneratedCB(onFrameGenerated_cb cb)
@@ -64,13 +69,12 @@ static void populateFrame(uint8_t* pFrame, uint16_t frameSize)
 	
 	uint16_t id = generateIdValue();
 	writeIdentifier(pFrame, frameSize, id);
-	uint8_t dlc = generateDLCValue();
+	uint8_t dlc = (uint16_t)generateDLCValue();
 	writeDLC(pFrame, frameSize, dlc);
 
-	//<AMIT>
-	printf("dlc = %d", dlc);
-	//</AMIT>
-
+	uint8_t data[DATA_FIELD_MAX_SIZE_bytes];
+	generateDataValues(&data, DATA_FIELD_MAX_SIZE_bytes, dlc);
+	writeDataValues(pFrame, frameSize, &data, dlc);
 }
 
 static uint16_t generateIdValue()
@@ -120,7 +124,7 @@ uint16_t readIdentifier(uint8_t const* pframe, uint16_t frameSize)
 {
 	if (frameSize < FRAME_ARBITRATION_IDENTIFIER_END_BYTE + 1)
 	{
-		return WRITE_FAILURE_INVALID_ARGS;
+		return READ_FAILURE_INVALID_ARGS;
 	}
 
 	uint8_t frameMSBByteCpy = *pframe;
@@ -165,11 +169,11 @@ uint8_t writeDLC(uint8_t* pframe, uint16_t frameSize, uint16_t dlc)
 	return WRITE_SUCCESS;
 }
 
-uint8_t readDLC(uint8_t const* pframe, uint16_t frameSize)
+uint16_t readDLC(uint8_t const* pframe, uint16_t frameSize)
 {
 	if (frameSize < FRAME_CONTROL_DLC_END_BYTE + 1)
 	{
-		return WRITE_FAILURE_INVALID_ARGS;
+		return READ_FAILURE_INVALID_ARGS;
 	}
 
 	uint8_t frameMSBByteCpy = *(pframe + FRAME_CONTROL_DLC_START_BYTE);
@@ -183,4 +187,91 @@ uint8_t readDLC(uint8_t const* pframe, uint16_t frameSize)
 	result >>= 5;
 
 	return result;
+}
+
+static void generateDataValues(uint8_t* pDataBuffer, uint16_t buffSize, uint8_t dataLen)
+{
+	if (buffSize < dataLen)
+	{
+		//TODO - handle scenario
+		return;
+	}
+	
+	for (int i = 0; i < dataLen; i++)
+	{
+		pDataBuffer[i] = rand() % BYTE_MAX_VAL;
+	}
+}
+
+//NOTE! This function modifies data argument content !
+uint8_t writeDataValues(uint8_t* pFrame, uint16_t frameSize, uint8_t* pData, uint8_t dataLen)
+{
+	if (frameSize < dataLen)
+	{
+		return WRITE_FAILURE_INVALID_ARGS;
+	}
+
+	if (dataLen == 0)
+	{
+		return 0;
+	}
+
+	uint16_t totalBitsToWrite = dataLen * BITS_IN_BYTE;
+
+	//handle start byte of data in frame
+	uint8_t* pStartDataByteInFrame = pFrame + FRAME_DATA_FIELD_START_BYTE;
+	//store other fields values on the same byte
+	uint8_t otherFieldsValues = *(pStartDataByteInFrame) & 0xE0;
+	
+	//<AMIT>
+	printf("WRITE original start byte = 0x%0x \n", *pStartDataByteInFrame);
+	printf("WRITE totalBitsToWrite = %d \n", totalBitsToWrite);
+	//</AMIT>
+
+	//extract bits that complete the byte of frame, where the data field starts
+	uint8_t dataFirstBitsToCompleteByte = (*pData & 0xF8) >> FRAME_DATA_FIELD_FIRST_BIT_OFFSET;
+
+	//set in frame
+	*pStartDataByteInFrame = otherFieldsValues | dataFirstBitsToCompleteByte;
+
+	totalBitsToWrite -= (BITS_IN_BYTE - FRAME_DATA_FIELD_FIRST_BIT_OFFSET);
+
+	//handle frame bytes of data-field only (no other fields on those bytes)
+	uint8_t* pCurrByteInFrame = pStartDataByteInFrame + 1; // +1 becuase we already handled first byte.
+	while (totalBitsToWrite > BITS_IN_BYTE)
+	{
+		//skip used bits, and copy rest of byte content into frame
+		*(pData) <<= (BITS_IN_BYTE - FRAME_DATA_FIELD_FIRST_BIT_OFFSET); 
+		memcpy(pCurrByteInFrame, pData, 1);
+
+		//complete the byte in frame with following bits from data
+		dataFirstBitsToCompleteByte = (*(pData + 1) & 0xF8) >> FRAME_DATA_FIELD_FIRST_BIT_OFFSET;
+		*pCurrByteInFrame |= dataFirstBitsToCompleteByte;
+
+		pCurrByteInFrame++;
+		pData++;
+		totalBitsToWrite -= BITS_IN_BYTE;
+		
+		//<AMIT>
+		printf("WRITE totalBitsToWrite = %d \n", totalBitsToWrite);
+		//</AMIT>
+	}
+
+
+	//handle end byte of data in frame
+	*(pData) <<= (BITS_IN_BYTE - FRAME_DATA_FIELD_FIRST_BIT_OFFSET);
+	uint8_t* pEndDataByteInFrame = pCurrByteInFrame;
+	//store other fields values on the same byte
+	otherFieldsValues = *(pEndDataByteInFrame) & 0x1F;
+	*pEndDataByteInFrame = (otherFieldsValues | *pData);
+
+	//<AMIT>
+	printf("WRITE last bytes original valus = 0x%0x \n", *pEndDataByteInFrame);
+	printf("WRITE otherFieldsValues = 0x%0x \n", otherFieldsValues);
+	printf("WRITE *pData = 0x%0x \n", *pData);
+	//</AMIT>
+
+
+
+	return dataLen;
 }
