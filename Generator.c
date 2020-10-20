@@ -22,7 +22,8 @@ framePlaceholder_t mFrameBuffer;
 static void populateFrame(uint8_t* pFrame, uint16_t frameSize);
 static uint16_t generateInterval();
 static uint16_t generateIdValue();
-static void writeIdentifier(uint8_t* pframe, uint16_t frameSize, uint16_t identifier);
+static uint16_t generateDLCValue();
+static uint16_t writeIdentifier(uint8_t* pframe, uint16_t frameSize, uint16_t identifier);
 
 void setOnFrameGeneratedCB(onFrameGenerated_cb cb)
 {
@@ -62,10 +63,14 @@ static void populateFrame(uint8_t* pFrame, uint16_t frameSize)
 	memset(pFrame, 0xFF, frameSize);
 	
 	uint16_t id = generateIdValue();
-	//<AMIT>
-	printf("id = %0x \n", id);
-	//</AMIT>
 	writeIdentifier(pFrame, frameSize, id);
+	uint8_t dlc = generateDLCValue();
+	writeDLC(pFrame, frameSize, dlc);
+
+	//<AMIT>
+	printf("dlc = %d", dlc);
+	//</AMIT>
+
 }
 
 static uint16_t generateIdValue()
@@ -76,17 +81,23 @@ static uint16_t generateIdValue()
 	return id;
 }
 
-static void writeIdentifier(uint8_t* pframe, uint16_t frameSize, uint16_t identifier)
+static uint16_t generateDLCValue()
+{
+	return (rand() % (DATA_FIELD_MAX_SIZE_bytes - DATA_FIELD_MIN_SIZE_bytes + 1))
+		+ DATA_FIELD_MIN_SIZE_bytes;
+}
+
+static uint16_t writeIdentifier(uint8_t* pframe, uint16_t frameSize, uint16_t identifier)
 {
 	if (identifier > 0x7FF)
 	{
 		//identifier field is 11 bits
-		return FAILURE_INVALID_ARGS;
+		return WRITE_FAILURE_INVALID_ARGS;
 	}
 
-	if (frameSize < sizeof(uint16_t))
+	if (frameSize < FRAME_ARBITRATION_IDENTIFIER_END_BYTE + 1)
 	{
-		return FAILURE_INVALID_ARGS;
+		return WRITE_FAILURE_INVALID_ARGS;
 	}
 
 	identifier <<= 4;
@@ -94,10 +105,10 @@ static void writeIdentifier(uint8_t* pframe, uint16_t frameSize, uint16_t identi
 	uint8_t identifierMSB = (uint8_t)(identifier >> 8);
 
 	//keep other frame fields values, clean current identifier bits, set value
-	uint8_t frameByte0Cpy = *pframe;
-	uint8_t frameByte1Cpy = *(pframe + 1);
-	identifierLSB = identifierLSB | (frameByte0Cpy & 0x0F);
-	identifierMSB = identifierMSB | (frameByte1Cpy & 0x80);
+	uint8_t frameByteLSBCpy = *pframe;
+	uint8_t frameByteMSBCpy = *(pframe + 1);
+	identifierLSB = identifierLSB | (frameByteLSBCpy & 0x0F);
+	identifierMSB = identifierMSB | (frameByteMSBCpy & 0x80);
 
 	*pframe = identifierMSB;
 	*(pframe + 1) = identifierLSB;
@@ -109,7 +120,7 @@ uint16_t readIdentifier(uint8_t const* pframe, uint16_t frameSize)
 {
 	if (frameSize < FRAME_ARBITRATION_IDENTIFIER_END_BYTE + 1)
 	{
-		return FAILURE_INVALID_ARGS;
+		return WRITE_FAILURE_INVALID_ARGS;
 	}
 
 	uint8_t frameMSBByteCpy = *pframe;
@@ -125,11 +136,40 @@ uint16_t readIdentifier(uint8_t const* pframe, uint16_t frameSize)
 	return result;
 }
 
+uint8_t writeDLC(uint8_t* pframe, uint16_t frameSize, uint16_t dlc)
+{
+	if (dlc > DATA_FIELD_MAX_SIZE_bytes || dlc < DATA_FIELD_MIN_SIZE_bytes)
+	{
+		return WRITE_FAILURE_INVALID_ARGS;
+	}
+
+	if (frameSize < FRAME_CONTROL_DLC_END_BYTE + 1)
+	{
+		return WRITE_FAILURE_INVALID_ARGS;
+	}
+
+	dlc <<= 5;
+	uint8_t dlcLSB = (uint8_t)dlc;
+	uint8_t dlcMSB = (uint8_t)(dlc >> 8);
+
+	//keep other frame fields values, clean current identifier bits, set value
+	uint8_t frameByteMSBCpy = *(pframe + FRAME_CONTROL_DLC_START_BYTE);
+	uint8_t frameByteLSBCpy = *(pframe + FRAME_CONTROL_DLC_START_BYTE + 1);
+
+	dlcLSB = dlcLSB | (frameByteLSBCpy & 0x1F);
+	dlcMSB = dlcMSB | (frameByteMSBCpy & 0xFE);
+
+	*(pframe + FRAME_CONTROL_DLC_START_BYTE) = dlcMSB;
+	*(pframe + FRAME_CONTROL_DLC_START_BYTE + 1) = dlcLSB;
+
+	return WRITE_SUCCESS;
+}
+
 uint8_t readDLC(uint8_t const* pframe, uint16_t frameSize)
 {
 	if (frameSize < FRAME_CONTROL_DLC_END_BYTE + 1)
 	{
-		return FAILURE_INVALID_ARGS;
+		return WRITE_FAILURE_INVALID_ARGS;
 	}
 
 	uint8_t frameMSBByteCpy = *(pframe + FRAME_CONTROL_DLC_START_BYTE);
@@ -142,5 +182,5 @@ uint8_t readDLC(uint8_t const* pframe, uint16_t frameSize)
 	*pResultLSB |= (frameLSBByteCpy & 0xE0);
 	result >>= 5;
 
-	return (uint8_t)result;
+	return result;
 }

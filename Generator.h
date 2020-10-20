@@ -9,7 +9,8 @@
 #define DATA_FIELD_MAX_SIZE_bytes				8
 #define DATA_FIELD_MIN_SIZE_bytes				0
 
-#define FAILURE_INVALID_ARGS					-1
+#define WRITE_FAILURE_INVALID_ARGS				-1
+#define WRITE_SUCCESS							0
 
 #define FRAME_GENERATE_INTERVAL_MIN_millis		50
 #define FRAME_GENERATE_INTERVAL_MAX_millis		100
@@ -20,6 +21,7 @@ void setOnFrameGeneratedCB(onFrameGenerated_cb cb);
 void generateFrames(int amount);
 uint16_t readIdentifier(uint8_t const* pframe, uint16_t frameSize);
 uint8_t readDLC(uint8_t const* pframe, uint16_t frameSize);
+uint8_t writeDLC(uint8_t* pframe, uint16_t frameSize, uint16_t dlc);
 
 #endif // ! _GENERATOR_H
 

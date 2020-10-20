@@ -1,6 +1,7 @@
 #include "Detector.h"
 #include <string.h>
 #include "Generator.h"
+#include "Reporter.h"
 
 //AMIT
 #include <stdio.h>
@@ -18,7 +19,7 @@ void onReceiveFrame(uint8_t const* pFrame, uint16_t frameSize)
 	//</AMIT>
 
 	uint16_t frameId = readIdentifier(pFrame, frameSize);
-	if (frameId == FAILURE_INVALID_ARGS
+	if (frameId == WRITE_FAILURE_INVALID_ARGS
 		|| (frameId != ALLOWED_ID1
 			&& frameId != ALLOWED_ID2
 			&& frameId != ALLOWED_ID3))
