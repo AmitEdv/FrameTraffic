@@ -222,11 +222,6 @@ uint8_t writeDataValues(uint8_t* pFrame, uint16_t frameSize, uint8_t* pData, uin
 	uint8_t* pStartDataByteInFrame = pFrame + FRAME_DATA_FIELD_START_BYTE;
 	//store other fields values on the same byte
 	uint8_t otherFieldsValues = *(pStartDataByteInFrame) & 0xE0;
-	
-	//<AMIT>
-	printf("WRITE original start byte = 0x%0x \n", *pStartDataByteInFrame);
-	printf("WRITE totalBitsToWrite = %d \n", totalBitsToWrite);
-	//</AMIT>
 
 	//extract bits that complete the byte of frame, where the data field starts
 	uint8_t dataFirstBitsToCompleteByte = (*pData & 0xF8) >> FRAME_DATA_FIELD_FIRST_BIT_OFFSET;
@@ -251,12 +246,7 @@ uint8_t writeDataValues(uint8_t* pFrame, uint16_t frameSize, uint8_t* pData, uin
 		pCurrByteInFrame++;
 		pData++;
 		totalBitsToWrite -= BITS_IN_BYTE;
-		
-		//<AMIT>
-		printf("WRITE totalBitsToWrite = %d \n", totalBitsToWrite);
-		//</AMIT>
 	}
-
 
 	//handle end byte of data in frame
 	*(pData) <<= (BITS_IN_BYTE - FRAME_DATA_FIELD_FIRST_BIT_OFFSET);
@@ -264,14 +254,6 @@ uint8_t writeDataValues(uint8_t* pFrame, uint16_t frameSize, uint8_t* pData, uin
 	//store other fields values on the same byte
 	otherFieldsValues = *(pEndDataByteInFrame) & 0x1F;
 	*pEndDataByteInFrame = (otherFieldsValues | *pData);
-
-	//<AMIT>
-	printf("WRITE last bytes original valus = 0x%0x \n", *pEndDataByteInFrame);
-	printf("WRITE otherFieldsValues = 0x%0x \n", otherFieldsValues);
-	printf("WRITE *pData = 0x%0x \n", *pData);
-	//</AMIT>
-
-
 
 	return dataLen;
 }

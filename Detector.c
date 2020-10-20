@@ -115,6 +115,19 @@ bool isDataLengthDifferent(frameWrapper_t* curr, frameWrapper_t* prev)
 
 bool isDataDifferent(frameWrapper_t* curr, frameWrapper_t* prev)
 {
-	//AMIT
+	//<AMIT>
+	/*
+	TODO- implement as follows:
+	create a boolean array in size of 225. 
+	(If we have enough memory we can even store the bytes-array and data in the Heap, to shorten our run-time)
+	read data of prev frame.
+	Go over the data byte-by-byte. for each byte, 
+		sign the array[byteValue] as True.
+		example: If I read byte 0x02, I will assign array[0x02] = true;
+	read data of prev frame.
+	Go over the data byte-by-byte. for each byte,
+		if the array[byteValue] has value of True, that means not all bytes are different between frames --> return INVALID
+	*/
+	//</AMIT>
 	return true;
 }

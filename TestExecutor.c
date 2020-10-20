@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
 	//Please comment out the program you'd like to launch. One at a time.
 
 	printf("=========Generator Unit============= \n");
-	testGeneratorUnit();
+	//testGeneratorUnit();
 	printf("==================================== \n");
 
 	printf("=========Detector Unit============== \n");
@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
 	printf("==================================== \n");
 
 	printf("=========Run Program================ \n");
-	//run(10);
+	run(5);
 	printf("==================================== \n");
 
 	return 0;
