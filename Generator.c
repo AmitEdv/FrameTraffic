@@ -15,7 +15,6 @@ static void populateFrame(uint8_t* pFrame, uint16_t frameSize);
 static uint16_t generateInterval();
 static uint16_t generateIdValue();
 static void writeIdentifier(uint8_t* pframe, uint16_t frameSize, uint16_t identifier);
-static uint16_t readIdentifier(uint8_t const* pframe, uint16_t frameSize);
 
 void setOnFrameGeneratedCB(onFrameGenerated_cb cb)
 {
@@ -101,7 +100,7 @@ static void writeIdentifier(uint8_t* pframe, uint16_t frameSize, uint16_t identi
 	return identifier;
 }
 
-static uint16_t readIdentifier(uint8_t const* pframe, uint16_t frameSize)
+uint16_t readIdentifier(uint8_t const* pframe, uint16_t frameSize)
 {
 	if (frameSize < sizeof(uint16_t)) 
 	{

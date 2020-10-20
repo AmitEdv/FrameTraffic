@@ -24,6 +24,7 @@ typedef void (*onFrameGenerated_cb)(uint8_t* pFrame, uint16_t frameSize);
 
 void setOnFrameGeneratedCB(onFrameGenerated_cb cb);
 void generateFrames(int amount);
+uint16_t readIdentifier(uint8_t const* pframe, uint16_t frameSize);
 
 #endif // ! _GENERATOR_H
 
