@@ -18,9 +18,48 @@
     <ClCompile Include="Generator.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TestExecutor.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestUnitGenerator.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Detector.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestUnitUtils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TimeSample.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Reporter.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestUnitDetector.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Generator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Detector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TestUnitGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TestUnitUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TimeSample.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Reporter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TestUnitDetector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

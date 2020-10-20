@@ -29,7 +29,11 @@ void generateFrames(int amount)
 	uint16_t intervalMilliseconds;
 	for (int i = 0; i < amount; i++)
 	{
-		intervalMilliseconds = generateInterval();
+		//<AMIT>
+		intervalMilliseconds = 50;
+		//intervalMilliseconds = generateInterval();
+		//</AMIT
+
 		//<AMIT>
 		printf("interval = %d \n", intervalMilliseconds);
 		//</AMIT>

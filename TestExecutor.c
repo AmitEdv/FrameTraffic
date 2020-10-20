@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
 	printf("==================================== \n");
 
 	printf("=========Run Program================ \n");
-	run(1			);
+	run(10);
 	printf("==================================== \n");
 
 	return 0;
@@ -25,6 +25,6 @@ int main(int argc, char* argv[])
 static void run(uint8_t numOfFrames)
 {
 	setOnFrameGeneratedCB(onReceiveFrame);
-	generateFrames(2);
+	generateFrames(numOfFrames);
 }
 

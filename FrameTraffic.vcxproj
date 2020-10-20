@@ -139,10 +139,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Detector.c" />
     <ClCompile Include="Generator.c" />
+    <ClCompile Include="Reporter.c" />
+    <ClCompile Include="TestExecutor.c" />
+    <ClCompile Include="TestUnitDetector.c" />
+    <ClCompile Include="TestUnitGenerator.c" />
+    <ClCompile Include="TestUnitUtils.c" />
+    <ClCompile Include="TimeSample.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Detector.h" />
     <ClInclude Include="Generator.h" />
+    <ClInclude Include="Reporter.h" />
+    <ClInclude Include="TestUnitDetector.h" />
+    <ClInclude Include="TestUnitGenerator.h" />
+    <ClInclude Include="TestUnitUtils.h" />
+    <ClInclude Include="TimeSample.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

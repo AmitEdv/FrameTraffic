@@ -30,9 +30,6 @@ long getTimeInSeconds()
 
 uint16_t getTimeDifferenceInMillis(timeSampleInfo_t* startTimeSample, timeSampleInfo_t* endTimeSample)
 {	
-
-	uint16_t secDiff = (uint16_t)(endTimeSample->epochSeconds - startTimeSample->epochSeconds);
-
 	//<AMIT>
 	/*
 	printf("getTimeDifferenceInMillis start sec = %d , millis = %d \n", startTimeSample->epochSeconds, startTimeSample->milliseconds);
@@ -42,6 +39,7 @@ uint16_t getTimeDifferenceInMillis(timeSampleInfo_t* startTimeSample, timeSample
 	*/
 	//</AMIT>
 
+	uint16_t secDiff = (uint16_t)(endTimeSample->epochSeconds - startTimeSample->epochSeconds);
 	if (secDiff == 0)
 	{
 		return (endTimeSample->milliseconds - startTimeSample->milliseconds);

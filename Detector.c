@@ -69,6 +69,12 @@ static uint8_t getPreviousFrameIndexById(uint16_t id)
 
 invalidFrameReason_e validationCheck(frameWrapper_t* curr, frameWrapper_t* prev)
 {
+	if (prev->id == 0)
+	{
+		//no previous frame of this id
+		return VALID;
+	}
+	
 	if (! isRateValid(curr, prev))
 	{
 		return INVALID_RATE;
@@ -90,6 +96,8 @@ invalidFrameReason_e validationCheck(frameWrapper_t* curr, frameWrapper_t* prev)
 bool isRateValid(frameWrapper_t* curr, frameWrapper_t* prev)
 {
 	//<AMIT>
+	printf("start sec = %d , millis = %d \n", prev->receivedTime.epochSeconds, curr->receivedTime.milliseconds);
+	printf("end   sec = %d , millis = %d \n", curr->receivedTime.epochSeconds, prev->receivedTime.milliseconds);
 	printf("diff = %d ms \n", getTimeDifferenceInMillis(&(prev->receivedTime), &(curr->receivedTime)));
 	//</AMIT>
 
@@ -98,8 +106,9 @@ bool isRateValid(frameWrapper_t* curr, frameWrapper_t* prev)
 
 bool isDataLengthDifferent(frameWrapper_t* curr, frameWrapper_t* prev)
 {
-	//AMIT
-	return true;
+	//<AMIT>
+	return false;
+	//</AMIT
 }
 
 bool isDataDifferent(frameWrapper_t* curr, frameWrapper_t* prev)
